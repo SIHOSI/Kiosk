@@ -1,4 +1,3 @@
-// src/controllers/authController.js
 const { Users } = require('../../models');
 
 class AuthController {
@@ -21,13 +20,13 @@ class AuthController {
       if (user) {
         res
           .cookie('isAdmin', user.isAdmin, { httponly: true })
-          .conkie('name', user.name, { httponly: true })
+          .cookie('name', user.name, { httponly: true })
           .json({ message: '로그인 성공', user });
       } else {
         res.status(401).json({ message: '로그인 실패' });
       }
     } catch (error) {
-      console.error(error);
+      console.log(error);
       res.status(500).json({ message: '로그인 오류' });
     }
   };
