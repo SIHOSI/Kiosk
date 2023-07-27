@@ -1,4 +1,4 @@
-const { Products, ProductOrders, sequelize } = require('../../models');
+const { Products, ProductOrders, Options, sequelize } = require('../../models');
 
 class AdminController {
   addProduct = async (req, res) => {
@@ -43,7 +43,20 @@ class AdminController {
   getAllProducts = async (req, res) => {
     try {
       const products = await Products.findAll();
-      res.status(200).json(products);
+      const productIds = products.map((product) => product.productId);
+
+      const options = await Options.findAll({
+        where: { ProductId: productIds },
+      });
+      // 상품 리스트와 옵션 리스트를 합쳐서 결과로 반환
+      const productsWithOption = products.map((product) => {
+        const productOption = options.filter(
+          (option) => option.ProductId === product.productId
+        );
+        return { ...product.toJSON(), options: productOption };
+      });
+
+      res.status(200).json(productsWithOption);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: '상품 조회 오류' });
@@ -58,9 +71,24 @@ class AdminController {
         return res.status(400).json({ message: '올바른 타입을 지정해주세요' });
       }
 
+      // 타입별 상품 리스트 조회
       const products = await Products.findAll({ where: { type } });
 
-      res.status(200).json(products);
+      // 각 상품별 옵션 리스트 조회
+      const productIds = products.map((product) => product.productId);
+      const options = await Options.findAll({
+        where: { ProductId: productIds },
+      });
+
+      // 상품 리스트와 옵션 리스트를 합쳐서 결과로 반환
+      const productsWithOption = products.map((product) => {
+        const productOption = options.filter(
+          (option) => option.ProductId === product.productId
+        );
+        return { ...product.toJSON(), options: productOption };
+      });
+
+      res.status(200).json(productsWithOption);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: '상품 조회 오류' });
@@ -303,6 +331,91 @@ class AdminController {
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: '발주 상태 수정 오류' });
+    }
+  };
+
+  // 옵션 추가 API
+  addOption = async (req, res) => {
+    try {
+      const { productName } = req.params;
+      const { extraPrice, shotPrice, hot } = req.body;
+
+      const product = await Products.findOne({ where: { productName } });
+      if (!product) {
+        return res
+          .status(404)
+          .json({ message: '해당 상품을 찾을 수 없습니다.' });
+      }
+
+      // 옵션 추가
+      const option = await Options.create({
+        ProductId: product.productId,
+        extraPrice,
+        shotPrice,
+        hot,
+      });
+
+      res.status(201).json({ message: '옵션 추가 성공', product, option });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: '옵션 추가 오류' });
+    }
+  };
+
+  // 옵션 수정 API
+  updateOption = async (req, res) => {
+    try {
+      const { productName } = req.params;
+      const { extraPrice, shotPrice, hot } = req.body;
+
+      const product = await Products.findOne({ where: { productName } });
+
+      // 옵션 조회
+      const option = await Options.findOne({
+        where: { productId: product.productId },
+      });
+
+      if (!option) {
+        return res
+          .status(404)
+          .json({ message: '해당 옵션을 찾을 수 없습니다.' });
+      }
+
+      // 옵션 정보 업데이트
+      await option.update({ extraPrice, shotPrice, hot });
+
+      res.status(200).json({ message: '옵션 정보가 수정되었습니다.', option });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: '옵션 수정 오류' });
+    }
+  };
+
+  // 옵션 삭제 API
+  deleteOption = async (req, res) => {
+    try {
+      const { productName } = req.params;
+
+      const product = await Products.findOne({ where: { productName } });
+
+      // 옵션 조회
+      const option = await Options.findOne({
+        where: { productId: product.productId },
+      });
+
+      if (!option) {
+        return res
+          .status(404)
+          .json({ message: '해당 옵션을 찾을 수 없습니다.' });
+      }
+
+      // 옵션 삭제
+      await option.destroy();
+
+      res.status(200).json({ message: '옵션을 삭제하였습니다.' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: '옵션 삭제 오류' });
     }
   };
 }

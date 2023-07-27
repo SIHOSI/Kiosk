@@ -7,6 +7,27 @@ const isAdminMiddleware = require('../middleware/isAdmin');
 // 상품 추가
 router.post('/products', isAdminMiddleware, adminController.addProduct);
 
+// 옵션 추가
+router.post(
+  '/products/:productName/options',
+  isAdminMiddleware,
+  adminController.addOption
+);
+
+// 옵션 수정
+router.patch(
+  '/products/:productName/options',
+  isAdminMiddleware,
+  adminController.updateOption
+);
+
+// 옵션 삭제
+router.delete(
+  '/products/:productName/options',
+  isAdminMiddleware,
+  adminController.deleteOption
+);
+
 // 상품 전체 리스트 조회
 router.get('/products', isAdminMiddleware, adminController.getAllProducts);
 
