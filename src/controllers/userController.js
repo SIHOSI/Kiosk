@@ -44,8 +44,6 @@ class UserController {
 
         // 주문 아이템에 생성한 주문 ID 할당
         await orderItem.update({ OrderId: order.orderId });
-
-        return res.status(201).json({ message: '상품 주문 성공' });
       }
 
       await orderItem.update({ OrderId: order.orderId });
@@ -67,6 +65,8 @@ class UserController {
         if (extraPrice) finalPrice += productOptions.extraPrice;
         if (shotPrice) finalPrice += productOptions.shotPrice;
       }
+
+      finalPrice += product.price * quantity;
 
       res.status(201).json({
         message: '상품 주문 성공',
