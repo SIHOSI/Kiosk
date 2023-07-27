@@ -1,4 +1,5 @@
-const { Orders, Products, OrderItems } = require('../models');
+const { Users, Orders, Products, OrderItems } = require('../../models');
+const { optionsCache } = require('../controllers/cacheController');
 
 class UserController {
   // 상품 주문 API
@@ -21,28 +22,58 @@ class UserController {
       const orderItem = await OrderItems.create({
         ProductId: product.productId,
         quantity,
-        extraPrice,
-        shotPrice,
-        hot,
+        OrderId: null, // 초기값으로 null을 설정하여 orderId를 생성하기 전에 할당하도록 합니다.
       });
 
-      // 주문 아이템에 해당하는 주문 조회
+      // 로그인일 경우 회원 조회
+      const user = req.cookies.user
+        ? await Users.findOne({ where: { name: req.cookies.user } })
+        : null;
+
+      // 주문 아이템에 해당하는 주문 조회 (orderItem의 orderId를 기다렸다가 조회)
       let order = await Orders.findOne({
         where: { orderId: orderItem.OrderId },
       });
 
       if (!order) {
-        // 주문 생성
+        // 없으면 주문 생성
         order = await Orders.create({
-          UserId: null, // 사용자 ID (만약 사용자 인증 기능이 있다면 해당 유저의 ID를 넣어줄 수 있습니다)
+          UserId: user ? user.userId : null,
           orderState: 'ORDERED', // 주문 상태 초기값은 ORDERED
         });
 
         // 주문 아이템에 생성한 주문 ID 할당
         await orderItem.update({ OrderId: order.orderId });
+
+        return res.status(201).json({ message: '상품 주문 성공' });
       }
 
-      res.status(201).json({ message: '상품 주문 성공' });
+      await orderItem.update({ OrderId: order.orderId });
+
+      // 옵션 정보 가져오기 (캐싱된 정보 활용)
+      const cachedOptions = optionsCache.get('options');
+      const productOptions = cachedOptions
+        ? cachedOptions.find((option) => option.ProductId === product.productId)
+        : null;
+
+      console.log(
+        '🚀 ~ file: userController.js:54 ~ UserController ~ createOrder= ~ productOptions:',
+        productOptions
+      );
+
+      // 최종 음식값 계산
+      let finalPrice = product.price;
+      if (productOptions) {
+        if (extraPrice) finalPrice += productOptions.extraPrice;
+        if (shotPrice) finalPrice += productOptions.shotPrice;
+      }
+
+      res.status(201).json({
+        message: '상품 주문 성공',
+        productName: product.productName,
+        quantity,
+        finalPrice,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: '상품 주문 오류' });
