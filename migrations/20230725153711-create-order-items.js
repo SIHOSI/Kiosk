@@ -17,14 +17,6 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
       },
-      OptionId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Options',
-          key: 'optionId',
-        },
-        onUpdate: 'CASCADE',
-      },
       ProductId: {
         type: Sequelize.INTEGER,
         references: {

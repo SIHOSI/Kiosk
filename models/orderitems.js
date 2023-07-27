@@ -14,11 +14,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'OrderId',
       });
 
-      this.belongsTo(models.Options, {
-        targetKey: 'optionId',
-        foreignKey: 'OptionId',
-      });
-
       this.belongsTo(models.Products, {
         targetKey: 'productId',
         foreignKey: 'ProductId',
@@ -38,14 +33,6 @@ module.exports = (sequelize, DataTypes) => {
         references: {
           model: 'Orders',
           key: 'orderId',
-        },
-        onUpdate: 'CASCADE',
-      },
-      OptionId: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Options',
-          key: 'optionId',
         },
         onUpdate: 'CASCADE',
       },

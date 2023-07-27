@@ -9,15 +9,6 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      this.hasMany(models.OrderOptions, {
-        sourceKey: 'optionId',
-        foreignKey: 'OptionId',
-      });
-
-      this.hasMany(models.OrderItems, {
-        sourceKey: 'optionId',
-        foreignKey: 'OptionId',
-      });
 
       this.belongsTo(models.Products, {
         targetKey: 'productId',
@@ -39,6 +30,8 @@ module.exports = (sequelize, DataTypes) => {
           model: 'Products',
           key: 'productId',
         },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       },
       extraPrice: {
         type: DataTypes.INTEGER,

@@ -18,11 +18,6 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'orderId',
         foreignKey: 'OrderId',
       });
-
-      this.hasMany(models.OrderOptions, {
-        sourceKey: 'orderId',
-        foreignKey: 'OrderId',
-      });
     }
   }
   Orders.init(
