@@ -6,12 +6,12 @@ const cacheOptionsData = async () => {
   try {
     const options = await Options.findAll();
 
-    console.log(
-      '🚀 ~ file: cacheController.js:9 ~ cacheOptionsData ~ options:',
-      options
-    );
-
     optionsCache.set('options', options);
+
+    console.log(
+      '🚀 ~ file: cacheController.js:11 ~ cacheOptionsData ~ optionsCache:',
+      optionsCache.get('options')
+    );
   } catch (error) {
     console.error('캐시 저장 오류.', error);
   }
