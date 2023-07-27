@@ -1,4 +1,8 @@
 const { Products, ProductOrders, Options, sequelize } = require('../../models');
+const {
+  cacheOptionsData,
+  optionsCache,
+} = require('../controllers/cacheController');
 
 class AdminController {
   addProduct = async (req, res) => {
@@ -45,9 +49,14 @@ class AdminController {
       const products = await Products.findAll();
       const productIds = products.map((product) => product.productId);
 
-      const options = await Options.findAll({
-        where: { ProductId: productIds },
-      });
+      // 캐시된 옵션 데이터 사용
+      const cachedOptions = optionsCache.get('options');
+      const options = cachedOptions
+        ? cachedOptions.filter((option) =>
+            productIds.includes(option.ProductId)
+          )
+        : await Options.findAll({ where: { ProductId: productIds } });
+
       // 상품 리스트와 옵션 리스트를 합쳐서 결과로 반환
       const productsWithOption = products.map((product) => {
         const productOption = options.filter(
@@ -76,9 +85,14 @@ class AdminController {
 
       // 각 상품별 옵션 리스트 조회
       const productIds = products.map((product) => product.productId);
-      const options = await Options.findAll({
-        where: { ProductId: productIds },
-      });
+
+      // 캐시된 옵션 데이터 사용
+      const cachedOptions = optionsCache.get('options');
+      const options = cachedOptions
+        ? cachedOptions.filter((option) =>
+            productIds.includes(option.ProductId)
+          )
+        : await Options.findAll({ where: { ProductId: productIds } });
 
       // 상품 리스트와 옵션 리스트를 합쳐서 결과로 반환
       const productsWithOption = products.map((product) => {
@@ -355,6 +369,9 @@ class AdminController {
         hot,
       });
 
+      // 옵션 추가 완료 후, 옵션 데이터를 메모리에 갱신
+      await cacheOptionsData();
+
       res.status(201).json({ message: '옵션 추가 성공', product, option });
     } catch (error) {
       console.error(error);
@@ -384,6 +401,9 @@ class AdminController {
       // 옵션 정보 업데이트
       await option.update({ extraPrice, shotPrice, hot });
 
+      // 옵션 수정 완료 후, 옵션 데이터를 메모리에 갱신
+      await cacheOptionsData();
+
       res.status(200).json({ message: '옵션 정보가 수정되었습니다.', option });
     } catch (error) {
       console.error(error);
@@ -411,6 +431,9 @@ class AdminController {
 
       // 옵션 삭제
       await option.destroy();
+
+      // 옵션 삭제 완료 후, 옵션 데이터를 메모리에 갱신
+      await cacheOptionsData();
 
       res.status(200).json({ message: '옵션을 삭제하였습니다.' });
     } catch (error) {
