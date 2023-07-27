@@ -29,14 +29,10 @@ router.delete(
 );
 
 // 상품 전체 리스트 조회
-router.get('/products', isAdminMiddleware, adminController.getAllProducts);
+router.get('/products', adminController.getAllProducts);
 
 // 타입별 상품 조회
-router.get(
-  '/products/:type',
-  isAdminMiddleware,
-  adminController.getProductsByType
-);
+router.get('/products/:type', adminController.getProductsByType);
 
 // 상품 삭제 - 1차 API
 router.delete(

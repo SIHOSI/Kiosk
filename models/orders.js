@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
       },
       orderState: {
-        type: DataTypes.ENUM('ORDERED', 'PENDING', 'COMPLETED', 'CANCELED'),
+        type: DataTypes.ENUM('ORDERED', 'COMPLETED', 'CANCELED'),
       },
       createdAt: {
         allowNull: false,
